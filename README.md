@@ -1,4 +1,4 @@
-#  Databricks MCP Code Execution Template via Databricks Command Execution API
+#  Databricks MCP Code Execution Template via Command Execution API
 
 ## 🎯 What This Does
 
@@ -13,15 +13,12 @@ This template enables AI assistants to:
 
 ---
 
-
----
-
 ## 🚀 Quick Start
 
 ### 1. Clone This Repository
 
 ```bash
-cd vibe-databricks
+cd databricks-exec-code-mcp
 ```
 
 ### 2. Configure MCP Servers
@@ -104,26 +101,20 @@ You'll need:
 Open this folder in Cursor or add it to Claude Desktop, then start chatting 💬
 
  - In order to get started with some prompts, see [example_prompts/prompts.md](./example_prompts/prompts.md) for some ready-to-use examples.
+
 ---
 
 ### 5. Default context to agentic coding tools
 
-** For Cursor **
+**For Cursor**
 
 Include the claude.md file following any of the below options:
   1. Navigate and add claude.md file in .cursor folder in your project root like project-name/.cursor/claude.md 
   2. Go to Settings-> Rules and Commands -> Toggle the button to include the claude.md in context and use @claude before your promp when interacting in the chat window.
 
-** For Claude code **
+**For Claude code**
 
 Navigate to the directory of your project where the claude.md file is residing i.e mcp-accl/vibe-databricks/
-
-
-## 💬 Example Prompts
-
-In order to get started with some prompts, see [example_prompts/prompts.md](./example_prompts/prompts.md) for some ready-to-use examples.
-
-
 
 ---
 
