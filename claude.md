@@ -1,23 +1,22 @@
 ## Databricks MCP Code Execution Template via Command Execution API
 
-Goal:
-> Enable end-to-end development in Databricks using VibeCoding. Test code directly on clusters, then deploy with Databricks Asset Bundles (DABs).
+**Goal:** Enable end-to-end development in Databricks using VibeCoding. Test code directly on clusters via MCP, then deploy with Databricks Asset Bundles (DABs).
 
 ---
 
-### 🚀 Before Starting - User Configuration Required
+### 🚀 Before Starting — User Configuration Required
 
-When a user asks to build a pipeline, the AI assistant should **first collect the following information**:
+When a user asks to build a pipeline, the AI assistant must **first collect:**
 
-#### 1. Databricks Workspace
-Ask the user:
-- **Workspace URL**: e.g., `https://dbc-xxxxx.cloud.databricks.com`
-- **Personal Access Token (PAT)**: Generated from Databricks User Settings → Developer → Access Tokens
-- **Catalog name**: Unity Catalog to use (must use underscores, not hyphens)
-- **Cluster ID**: For testing code via the Command Execution API
+#### 1. Databricks Workspace Details
 
-#### 2. Databricks MCP Server 
-For direct execution on Databricks clusters:
+- **Workspace URL** (e.g., `https://dbc-xxxxx.cloud.databricks.com`)
+- **Personal Access Token (PAT)**
+- **Catalog name** (Unity Catalog; underscores only)
+- **Cluster ID** (used for MCP command execution)
+
+#### 2. MCP Server (Required)
+
 ```json
 {
   "mcpServers": {
@@ -31,99 +30,161 @@ For direct execution on Databricks clusters:
 
 ---
 
+### 🧠 Rule Precedence (Critical)
+
+1. **MCP commands must always run automatically on the Databricks cluster.**
+   - No confirmation required
+   - Never simulate execution locally
+2. **`databricks bundle validate` and `databricks bundle deploy` must run automatically.**
+3. **`databricks bundle run <job>` must NEVER run automatically.**
+   - Always ask user **explicitly** before running
+4. When unsure whether to execute something, **ask the user**.
+
+These rules override anything else in this file.
+
+---
+
 ### 📦 Packaging & Deployment Standards
 
-#### 1. Development Workflow
-The workflow has two phases:
+#### 🔹 Phase 1: Test & Iterate (MCP Execution)
 
-**Phase 1: Test & Iterate (MCP Command Execution)**
-- Use `databricks-dev-mcp` MCP to run code directly on a Databricks cluster
-- Fetch execution results via the Databricks Command Execution API
-- Debug errors with real cluster output
-- Iterate until code works correctly
+- Always use `databricks-dev-mcp` to run code on a Databricks cluster.
+- MCP executions should **run immediately** without asking.
+- Return full cluster output to the user.
+- Iterate until the code works.
 
-**Phase 2: Package & Deploy (DABs)**
-- Once code is tested, package it with Databricks Asset Bundles
-- Deploy the bundle as a production-ready pipeline
-- Do NOT run anything locally or simulate results
+#### 🔹 Phase 2: Package & Deploy (DABs)
 
-#### 2. Always Use Databricks Asset Bundles (DABs)
-- Package all Databricks code using `databricks.yml`
-- Never create standalone scripts without bundle packaging
-- Create the entire codebase locally inside its own folder within the main directory
-- **After creating the DABs project, always run these commands to deploy:**
-  1. `databricks bundle validate -t dev` - Validate the bundle configuration
-  2. `databricks bundle deploy -t dev` - Deploy the bundle to Databricks
-  3. `databricks bundle run <job_name> -t dev` - (Optional) Run the job immediately
-- If CLI authentication fails, instruct the user to either:
-  - Run `databricks auth login --host <workspace_url>` for interactive login
-  - Set `DATABRICKS_HOST` and `DATABRICKS_TOKEN` environment variables
+Once MCP testing is complete:
 
-#### 3. Pipeline Structure
-Organize code following this pattern:
+1. Create a Databricks Asset Bundle project.
+2. Generate all necessary files inside a dedicated project folder.
+3. Populate the `databricks.yml` bundle configuration.
+4. Add job definitions under `resources/`.
+
+#### ⚠️ Automatic Steps (assistant must run these immediately)
+
+After generating the bundle:
+
+1. `databricks bundle validate -t dev`
+2. `databricks bundle deploy -t dev`
+
+These do **not** require user confirmation.
+
+#### ❗ Manual Step (requires explicit user confirmation)
+
+Before running the deployed job, the assistant **must ask:**
+
+> "Do you want to run `databricks bundle run <job_name> -t dev` now?"
+
+Run the job **only if the user says yes**.
+
+---
+
+### 📁 Standard Project Structure
+
 ```
 project/
-├── databricks.yml          # Bundle configuration
-├── resources/              # Job definitions
-│   └── training_job.yml
+├── databricks.yml
+├── resources/
+│   └── job.yml
 ├── src/<project>/
-│   └── notebooks/          # Databricks notebooks
+│   └── notebooks/
 │       ├── 01_data_prep.py
 │       ├── 02_training.py
 │       └── 03_validation.py
-└── tests/                  # Unit tests (optional)
+└── tests/
 ```
 
-**⚠️ Important DABs Path Resolution:**
-When using `include: - resources/*.yml` in `databricks.yml`, notebook paths in those resource files are resolved **relative to the resource file location**, not the bundle root. For example, if your job YAML is in `resources/`, use `notebook_path: ../src/notebooks/my_notebook.py` (with `../` to navigate back to bundle root) instead of `notebook_path: src/notebooks/my_notebook.py`.
+#### ❗ Important Path Rule
 
-#### 4. Parameterize Everything - No Hard-Coded Values
-- Use bundle variables: `${var.catalog}`, `${var.schema}`, `${bundle.target}`
-- Workspace paths: `${workspace.current_user.userName}`
-- Pass parameters via `dbutils.widgets` in notebooks
+Paths in `resources/*.yml` resolve **relative to the resource file**.
 
-#### 5. Multi-Environment Support
-Configure targets in `databricks.yml`:
-- `dev` - Development (user workspace)
-- `staging` - Pre-production testing (optional)
-- `prod` - Production deployment (optional)
+Example:
+
+```yaml
+notebook_path: ../src/notebooks/01_data_prep.py
+```
 
 ---
 
-### 🧠 AI Assistant Workflow
+### 🔧 Parameterization Requirements
 
-When asked to build and deploy a pipeline, the AI should:
+- Never hard-code values.
+- Use:
+  - `${var.catalog}`
+  - `${var.schema}`
+  - `${bundle.target}`
+  - `${workspace.current_user.userName}`
 
-1. **Collect configuration** (workspace, catalog, cluster ID) from the user
-2. **Test code on Databricks** using MCP Command Execution API
-3. **Debug and iterate** until code works correctly
-4. **Create the DABs project** structure with all necessary files
-5. **Validate the bundle** using `databricks bundle validate`
-6. **Deploy the bundle** using `databricks bundle deploy`
-7. **Verify deployment** in Databricks workspace
+Notebooks must use:
 
----
-
-### 🔒 Safety & Permissions
-
-- Never hard-code tokens or secrets in files
-- Use environment variables for authentication
-- Use `dbutils.widgets` for parameterization in notebooks
-- All API calls must use secure authentication
+```python
+dbutils.widgets.get()
+```
 
 ---
 
-### 🛠️ Serverless Compute Considerations
+### 🌍 Multi-Environment Targets
 
-When deploying to serverless-only workspaces:
-- Do NOT define `new_cluster` in job tasks
-- Use `%pip install <package>` in notebooks for dependencies
-- Use `try/except` for `dbutils.widgets.get()` (serverless has limited widget support)
-- Test with `databricks bundle validate` before deployment
+Support at least:
+
+- `dev`
+- `staging` (optional)
+- `prod` (optional)
 
 ---
 
-### 📚 Reference Links
+### 🛠️ Serverless Compute Guidelines
+
+- Do NOT define `new_cluster` in tasks.
+- Use `%pip install` for library installation.
+- Wrap widget access in try/except:
+
+```python
+try:
+    x = dbutils.widgets.get("param")
+except:
+    x = default
+```
+
+---
+
+### 🧠 AI Assistant Workflow (Final)
+
+When the user asks to build or deploy:
+
+1. Collect workspace details.
+2. Use MCP to run notebook code directly on Databricks.
+   - **Runs automatically**
+3. Debug with real cluster output.
+4. Generate full DAB project.
+5. Automatically run:
+   - `databricks bundle validate -t dev`
+   - `databricks bundle deploy -t dev`
+6. Confirm deployment.
+7. Ask the user:
+   > "Would you like to run the deployed job now?"
+8. If yes → execute `databricks bundle run <job_name> -t dev`.
+9. Report:
+   - Success/failure
+   - Run status
+   - Result state
+   - Any error message
+10. Never remain silent after a job execution.
+
+---
+
+### 🔒 Security
+
+- Never store or print access tokens.
+- Use environment variables for authentication.
+- Never embed secrets in code or notebooks.
+- Always use secure API calls.
+
+---
+
+### 📚 References
 
 - [Databricks Asset Bundles](https://docs.databricks.com/dev-tools/bundles/index.html)
-- [MLOps Deployment Patterns](https://docs.databricks.com/aws/en/machine-learning/mlops/deployment-patterns#deploy-code-recommended)
+- [Databricks MLOps Patterns](https://docs.databricks.com/machine-learning/mlops/mlops-workflow.html)
