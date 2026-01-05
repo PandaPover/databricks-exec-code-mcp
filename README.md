@@ -44,7 +44,13 @@ export DATABRICKS_TOKEN=dapi_your_token_here
 cd databricks-exec-code-mcp
 ```
 
-#### 2. Start the MCP Server
+#### 2. Install Requirements
+
+```bash
+pip install -r requirements.txt
+```
+
+#### 3. Start the MCP Server
 
 ```bash
 python mcp_tools/tools.py
@@ -55,7 +61,7 @@ The server runs at:
 http://localhost:8000
 ```
 
-#### 3. Configure Your AI Client
+#### 4. Configure Your AI Client
 
 Add the following to your MCP configuration:
 
@@ -98,7 +104,7 @@ Add the following to your MCP configuration:
 
 Restart your AI client after configuration.
 
-#### 4. Prepare Your Credentials
+#### 5. Prepare Your Credentials
 
 You'll need:
 - **Databricks Workspace URL**: `https://dbc-xxxxx.cloud.databricks.com`
@@ -106,7 +112,7 @@ You'll need:
 - **Unity Catalog Name**: e.g., `my_catalog`
 - **Cluster ID**: For testing code via Command Execution API
 
-#### 5. Include Context for AI
+#### 6. Include Context for AI
 
 **For Cursor:**
 Add the `claude.md` file to your project:
@@ -117,7 +123,7 @@ Add the `claude.md` file to your project:
 Navigate to the directory containing the `claude.md` file.
 
 
-#### 6. Example prompts
+#### 7. Example prompts
 
 To start chatting with the AI-assistant, you can also leverage some examples in [`example_prompts`](./example_prompts).
 
