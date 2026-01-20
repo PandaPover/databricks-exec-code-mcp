@@ -210,7 +210,7 @@ get_cursor_config() {
 # Install skill to Cursor (.cursor/rules/)
 install_skill_cursor() {
     local skill_name="$1"
-    local output_file="$CURSOR_RULES_DIR/databricks-${skill_name}.mdc"
+    local output_file="$CURSOR_RULES_DIR/${skill_name}.mdc"
     
     # Create rules directory
     mkdir -p "$CURSOR_RULES_DIR"
