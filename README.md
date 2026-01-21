@@ -81,6 +81,11 @@ Add the MCP server to your configuration. Use the path to your cloned repo:
     }
   }
 }
+
+```
+Then add the MCP server via CLI: 
+```
+claude mcp add databricks /path/to/.venv/bin/python /path/to/mcp_tools/tools.py
 ```
 
 > 💡 **Tip**: Replace `/path/to/databricks-exec-code-mcp` with the actual path to your cloned repo.
@@ -92,12 +97,12 @@ Restart your AI client after configuration.
 Install the Databricks skills to teach your AI assistant how to work with Databricks:
 
 ```bash
-# Install for both Cursor and Claude Code
+# Install for both Cursor and Claude Code (from cloned repo)
 ./install_skills.sh --all
 
 # Or install for a specific client
 ./install_skills.sh --cursor
-./install_skills.sh --claude
+./install_skills.sh --claude 
 ```
 
 This installs skills to:
@@ -142,25 +147,11 @@ your-project/
 
 | Feature | Description |
 |---------|-------------|
-| **Direct Cluster Execution** | Test code on Databricks clusters via MCP |
+| **Direct Cluster Execution** | Test code on Databricks clusters via Databricks Execution API|
 | **DABs Packaging** | Production-ready bundle deployment |
 | **Multi-Environment** | Support for dev/staging/prod targets |
 | **Unity Catalog** | Models and data registered to UC for governance |
 | **MLflow Tracking** | Experiment tracking and model versioning |
-
----
-
-### 🛠️ Troubleshooting
-
-#### MCP Server Connection Issues
-1. Ensure the MCP server is running: `python mcp_tools/tools.py`
-2. Verify environment variables are set: `echo $DATABRICKS_HOST`
-3. Check your AI client's MCP configuration
-
-#### Databricks Authentication
-If CLI authentication fails:
-- Run `databricks auth login --host <workspace_url>` for interactive login
-- Or set `DATABRICKS_HOST` and `DATABRICKS_TOKEN` environment variables
 
 ---
 
@@ -169,6 +160,7 @@ If CLI authentication fails:
 - [Databricks Asset Bundles](https://docs.databricks.com/dev-tools/bundles/index.html)
 - [MLOps Deployment Patterns](https://docs.databricks.com/aws/en/machine-learning/mlops/deployment-patterns)
 - [MCP Specification](https://modelcontextprotocol.io/)
+- [SKILLS](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview)
 
 ---
 
